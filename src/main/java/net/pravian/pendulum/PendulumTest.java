@@ -8,6 +8,7 @@ public class PendulumTest {
     public static void main(String[] args) {
         Pendulum timer = Pendulum.instance();
 
+        /**
         timer.init("simple");
 
         timer.start("simple");
@@ -16,23 +17,26 @@ public class PendulumTest {
         } catch (InterruptedException ex) {
             Logger.getLogger(PendulumTest.class.getName()).log(Level.SEVERE, null, ex);
         }
-        timer.stop();
+        timer.stopLast();
 
-        System.out.println(timer.getTimingsMap().get("simple").getDiffMillis());
+        System.out.println(timer.getTimersMap().get("simple").getData().getLastMs());
 
-        timer.clear();
+        timer.clearTimings();
+        */
 
-        timer.start("loop test");
-        for (int i = 0; i < 20; i++) {
+        timer.start("outer", "loop");
+        for (int i = 1; i < 21; i++) {
+            timer.start("loop");
             try {
-                Thread.sleep(55);
+                Thread.sleep(25 * i);
             } catch (InterruptedException ex) {
                 Logger.getLogger(PendulumTest.class.getName()).log(Level.SEVERE, null, ex);
             }
+            timer.stopLast();
         }
-        timer.stop("loop test");
+        timer.stopLast();
 
-        System.out.println(timer.report());
+        System.out.println(timer.report().getStringReport());
     }
 
 }
