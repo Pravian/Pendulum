@@ -17,6 +17,7 @@ package net.pravian.tuxedo.snapshot;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Iterator;
 import lombok.Getter;
 import net.pravian.tuxedo.MathUtil;
 import net.pravian.tuxedo.timer.Split;
@@ -70,11 +71,11 @@ public class SimpleSnapshot implements Snapshot {
         max = tempMax;
 
         // Median
-        int middleIndex = (int) Math.floor((double) values.length / 2.0);
         if (values.length % 2 == 1) {
-            this.median = values[middleIndex];
+            this.median = values[values.length / 2];
         } else {
-            this.median = (values[middleIndex] + values[middleIndex + 1]) / 2;
+            int middleLeftIndex = (values.length - 1) / 2;
+            this.median = (values[middleLeftIndex] + values[middleLeftIndex + 1]) / 2;
         }
 
         // Variance
@@ -91,17 +92,30 @@ public class SimpleSnapshot implements Snapshot {
         return MathUtil.sqrt(variance);
     }
 
-    public static SimpleSnapshot forValues(long[] values) {
-        return new SimpleSnapshot(Arrays.copyOf(values, values.length));
+    @Override
+    public Iterator<Long> iterator() {
+        return new LongIterator(values);
     }
 
-    public static SimpleSnapshot forCollection(Collection<Long> coll) {
+    public static Snapshot forCollection(Collection<Long> coll) {
         long[] values = new long[coll.size()];
 
         int index = 0;
         for (Long value : coll) {
             values[index] = value;
             index++;
+        }
+
+        return forDirectValues(values);
+    }
+
+    public static Snapshot forValues(long[] values) {
+        return forDirectValues(Arrays.copyOf(values, values.length));
+    }
+
+    public static Snapshot forDirectValues(long[] values) {
+        if (values.length == 0) {
+            return new EmptySnapShot();
         }
 
         return new SimpleSnapshot(values);

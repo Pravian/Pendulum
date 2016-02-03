@@ -19,7 +19,7 @@ import net.pravian.tuxedo.snapshot.Snapshottable;
 
 public interface Pool extends Snapshottable, Iterable<Long> {
 
-    public void push(long val);
+    public void push(long value);
 
     public void clear();
 

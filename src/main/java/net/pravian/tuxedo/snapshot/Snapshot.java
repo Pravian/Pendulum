@@ -15,7 +15,7 @@
  */
 package net.pravian.tuxedo.snapshot;
 
-public interface Snapshot {
+public interface Snapshot extends Iterable<Long> {
 
     public long[] getValues();
 
@@ -28,6 +28,8 @@ public interface Snapshot {
     public long getMax();
 
     public long getMedian();
+
+    public long getVariance();
 
     public long getStandardDeviation();
 

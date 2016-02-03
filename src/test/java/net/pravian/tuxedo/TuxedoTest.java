@@ -15,6 +15,7 @@
  */
 package net.pravian.tuxedo;
 
+import net.pravian.tuxedo.pool.SlidingWindowPoolTest;
 import net.pravian.tuxedo.pool.StaticPoolTest;
 import net.pravian.tuxedo.snapshot.SimpleSnapshotTest;
 import org.junit.runner.RunWith;
@@ -24,6 +25,7 @@ import org.junit.runners.Suite;
 @Suite.SuiteClasses({
     MathUtilTest.class,
     StaticPoolTest.class,
+    SlidingWindowPoolTest.class,
     SimpleSnapshotTest.class
 })
 public class TuxedoTest {

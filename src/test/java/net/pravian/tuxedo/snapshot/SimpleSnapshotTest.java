@@ -28,7 +28,7 @@ public class SimpleSnapshotTest {
             2, 4, 4, 4, 5, 5, 7, 9
         };
 
-        SimpleSnapshot snap = SimpleSnapshot.forValues(values);
+        Snapshot snap = SimpleSnapshot.forValues(values);
 
         assertThat(snap.getMin()).isEqualTo(2L);
         assertThat(snap.getMax()).isEqualTo(9L);
