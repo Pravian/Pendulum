@@ -3,11 +3,11 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>net.pravian</groupId>
-    <artifactId>Pendulum</artifactId>
+    <artifactId>Tuxedo</artifactId>
     <version>1.0</version>
     <packaging>jar</packaging>
 
-    <name>Pendulum</name>
+    <name>Tuxedo</name>
     <url>http://github.com/Pravian/Pendulum</url>
     <description>Quick and modular timer analytics.</description>
 
@@ -55,6 +55,26 @@
     </distributionManagement>
 
     <dependencies>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.16.6</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- Test dependencies -->
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.12</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.google.truth</groupId>
+            <artifactId>truth</artifactId>
+            <version>0.27</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <profiles>
