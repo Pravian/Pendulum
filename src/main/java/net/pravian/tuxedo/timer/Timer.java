@@ -15,16 +15,12 @@
  */
 package net.pravian.tuxedo.timer;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Iterator;
-import java.util.List;
 import lombok.Getter;
 import net.pravian.tuxedo.Clock;
 import net.pravian.tuxedo.Tuxedo;
 import net.pravian.tuxedo.pool.Pool;
 import net.pravian.tuxedo.pool.StaticPool;
-import net.pravian.tuxedo.snapshot.SimpleSnapshot;
 import net.pravian.tuxedo.snapshot.Snapshot;
 import net.pravian.tuxedo.snapshot.Snapshottable;
 

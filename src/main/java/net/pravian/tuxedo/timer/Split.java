@@ -18,7 +18,7 @@ package net.pravian.tuxedo.timer;
 import lombok.Getter;
 import net.pravian.tuxedo.Timable;
 
-public class Split implements Timable {
+public class Split implements Timable, AutoCloseable {
 
     @Getter
     private final Timer timer;
@@ -48,6 +48,11 @@ public class Split implements Timable {
     @Override
     public long getTimeNanos() {
         return stop - start;
+    }
+
+    @Override
+    public void close() {
+        stop();
     }
 
     public static Split start(Timer timer) {
