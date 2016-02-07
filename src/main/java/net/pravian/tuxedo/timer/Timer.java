@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Iterator;
+import java.util.concurrent.Callable;
 import lombok.Getter;
 import net.pravian.tuxedo.Clock;
 import net.pravian.tuxedo.Tuxedo;
@@ -61,11 +62,36 @@ public class Timer implements Snapshottable, Persistable, Iterable<Long> {
     public Split start() {
         return Split.start(this);
     }
-
-    public void add(Split split) {
-        pool.push(split.getTimeNanos());
+        
+    public long time(Split time) {
+        return time(time.getTimeNanos());
     }
 
+    public long time(Runnable runnable) {
+        long start = clock.nanos();
+        try {
+            runnable.run();
+            return time(clock.nanos() - start);
+        } catch (Throwable throwable) {
+            time(clock.nanos() - start);
+            throw throwable;
+        }
+    }
+    
+    public <T> T time(Callable<T> callable) throws Exception {
+        long start = clock.nanos();
+        try {
+            return callable.call();
+        } finally {
+            time(clock.nanos() - start);
+        }
+    }
+
+    public long time(long time) {
+        pool.push(time);
+        return time;
+    }
+    
     public int size() {
         return pool.size();
     }

@@ -42,7 +42,7 @@ public class Split implements Timable, AutoCloseable {
         }
         stop = timer.getClock().nanos();
 
-        timer.add(this);
+        timer.time(this);
     }
 
     @Override
