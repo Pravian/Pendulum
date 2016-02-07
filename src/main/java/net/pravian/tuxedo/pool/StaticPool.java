@@ -15,9 +15,13 @@
  */
 package net.pravian.tuxedo.pool;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import net.pravian.tuxedo.persistence.PersistenceUtil;
 import net.pravian.tuxedo.snapshot.SimpleSnapshot;
 import net.pravian.tuxedo.snapshot.Snapshot;
 
@@ -48,6 +52,21 @@ public class StaticPool implements Pool {
     @Override
     public Iterator<Long> iterator() {
         return values.iterator();
+    }
+
+    @Override
+    public void writeTo(OutputStream stream) throws IOException {
+        PersistenceUtil.writeValues(stream, values.toArray(new Long[0]));
+    }
+
+    @Override
+    public void readFrom(InputStream stream) throws IOException {
+        long[] readValues = PersistenceUtil.readValues(stream);
+
+        clear();
+        for (long value : readValues) {
+            push(value);
+        }
     }
 
 }

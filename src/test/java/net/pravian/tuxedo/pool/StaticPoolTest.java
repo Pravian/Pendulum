@@ -16,6 +16,8 @@
 package net.pravian.tuxedo.pool;
 
 import static com.google.common.truth.Truth.*;
+import java.io.IOException;
+import net.pravian.tuxedo.persistence.PersistenceTestUtil;
 
 import org.junit.Test;
 
@@ -54,6 +56,11 @@ public class StaticPoolTest {
         assertThat(pool.size()).isEqualTo(4);
         pool.clear();
         assertThat(pool.size()).isEqualTo(0);
+    }
+
+    @Test
+    public void testPersistence() throws IOException {
+        PersistenceTestUtil.testPool(new StaticPool());
     }
 
 }

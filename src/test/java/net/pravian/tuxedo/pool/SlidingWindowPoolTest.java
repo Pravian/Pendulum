@@ -15,7 +15,11 @@
  */
 package net.pravian.tuxedo.pool;
 
+import com.google.common.truth.Truth;
 import static com.google.common.truth.Truth.*;
+import java.io.IOException;
+import junit.framework.Assert;
+import net.pravian.tuxedo.persistence.PersistenceTestUtil;
 
 import org.junit.Test;
 
@@ -74,6 +78,17 @@ public class SlidingWindowPoolTest {
 
         assertThat(pool.size()).isEqualTo(0);
         assertThat(pool.snapshot().getValues()).asList().isEmpty();
+    }
+
+    @Test
+    public void testPersistence() throws IOException {
+        PersistenceTestUtil.testPool(new SlidingWindowPool(10));
+
+        try {
+            PersistenceTestUtil.testPool(new SlidingWindowPool(2));
+            Truth.assertWithMessage("Did not write all values!").fail();
+        } catch (Throwable t) {
+        }
     }
 
 }

@@ -15,9 +15,10 @@
  */
 package net.pravian.tuxedo.pool;
 
+import net.pravian.tuxedo.persistence.Persistable;
 import net.pravian.tuxedo.snapshot.Snapshottable;
 
-public interface Pool extends Snapshottable, Iterable<Long> {
+public interface Pool extends Snapshottable, Persistable, Iterable<Long> {
 
     public void push(long value);
 
