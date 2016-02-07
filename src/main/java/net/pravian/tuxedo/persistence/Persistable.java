@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Jerom van der Sar.
+ * Copyright 2016 Jerom van der Sar
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,23 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.pravian.tuxedo;
+package net.pravian.tuxedo.persistence;
 
-import net.pravian.tuxedo.pool.SlidingWindowPoolTest;
-import net.pravian.tuxedo.pool.StaticPoolTest;
-import net.pravian.tuxedo.snapshot.SimpleSnapshotTest;
-import net.pravian.tuxedo.timer.TimerTest;
-import org.junit.runner.RunWith;
-import org.junit.runners.Suite;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 
-@RunWith(Suite.class)
-@Suite.SuiteClasses({
-    MathUtilTest.class,
-    StaticPoolTest.class,
-    SlidingWindowPoolTest.class,
-    SimpleSnapshotTest.class,
-    TimerTest.class
-})
-public class TuxedoTest {
+public interface Persistable {
+
+    public void writeTo(OutputStream stream) throws IOException;
+
+    public void readFrom(InputStream stream) throws IOException;
 
 }

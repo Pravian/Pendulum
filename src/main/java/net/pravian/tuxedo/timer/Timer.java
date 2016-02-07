@@ -15,20 +15,20 @@
  */
 package net.pravian.tuxedo.timer;
 
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.Iterator;
-import java.util.List;
 import lombok.Getter;
 import net.pravian.tuxedo.Clock;
 import net.pravian.tuxedo.Tuxedo;
+import net.pravian.tuxedo.persistence.Persistable;
 import net.pravian.tuxedo.pool.Pool;
 import net.pravian.tuxedo.pool.StaticPool;
-import net.pravian.tuxedo.snapshot.SimpleSnapshot;
 import net.pravian.tuxedo.snapshot.Snapshot;
 import net.pravian.tuxedo.snapshot.Snapshottable;
 
-public class Timer implements Snapshottable, Iterable<Long> {
+public class Timer implements Snapshottable, Persistable, Iterable<Long> {
 
     @Getter
     private final String name;
@@ -66,6 +66,10 @@ public class Timer implements Snapshottable, Iterable<Long> {
         pool.push(split.getTimeNanos());
     }
 
+    public int size() {
+        return pool.size();
+    }
+
     public void clear() {
         pool.clear();
     }
@@ -78,6 +82,16 @@ public class Timer implements Snapshottable, Iterable<Long> {
     @Override
     public Iterator<Long> iterator() {
         return pool.iterator();
+    }
+
+    @Override
+    public void writeTo(OutputStream stream) throws IOException {
+        pool.writeTo(stream);
+    }
+
+    @Override
+    public void readFrom(InputStream stream) throws IOException {
+        pool.readFrom(stream);
     }
 
 }

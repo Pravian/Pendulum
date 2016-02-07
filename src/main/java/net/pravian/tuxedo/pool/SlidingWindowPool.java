@@ -15,7 +15,11 @@
  */
 package net.pravian.tuxedo.pool;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.Iterator;
+import net.pravian.tuxedo.persistence.PersistenceUtil;
 import net.pravian.tuxedo.snapshot.SimpleSnapshot;
 import net.pravian.tuxedo.snapshot.Snapshot;
 
@@ -48,16 +52,33 @@ public class SlidingWindowPool implements Pool {
 
     @Override
     public Snapshot snapshot() {
-        final long[] snapValues = new long[size()];
-
-        System.arraycopy(values, 0, snapValues, 0, snapValues.length);
-
-        return SimpleSnapshot.forDirectValues(snapValues);
+        return SimpleSnapshot.forDirectValues(values());
     }
 
     @Override
     public Iterator<Long> iterator() {
         return snapshot().iterator();
+    }
+
+    @Override
+    public void writeTo(OutputStream stream) throws IOException {
+        PersistenceUtil.writeValues(stream, values());
+    }
+
+    @Override
+    public void readFrom(InputStream stream) throws IOException {
+        long[] readValues = PersistenceUtil.readValues(stream);
+
+        clear();
+        for (long value : readValues) {
+            push(value);
+        }
+    }
+
+    private long[] values() {
+        final long[] snapValues = new long[size()];
+        System.arraycopy(values, 0, snapValues, 0, snapValues.length);
+        return snapValues;
     }
 
 }
