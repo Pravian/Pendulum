@@ -15,6 +15,7 @@
  */
 package net.pravian.tuxedo;
 
+import net.pravian.tuxedo.pool.SlidingTimeWindowPoolTest;
 import net.pravian.tuxedo.pool.SlidingWindowPoolTest;
 import net.pravian.tuxedo.pool.StaticPoolTest;
 import net.pravian.tuxedo.snapshot.SimpleSnapshotTest;
@@ -27,6 +28,7 @@ import org.junit.runners.Suite;
     MathUtilTest.class,
     StaticPoolTest.class,
     SlidingWindowPoolTest.class,
+    SlidingTimeWindowPoolTest.class,
     SimpleSnapshotTest.class,
     TimerTest.class
 })

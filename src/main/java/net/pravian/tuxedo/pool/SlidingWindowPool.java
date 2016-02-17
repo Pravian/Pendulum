@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Iterator;
+import java.util.concurrent.atomic.AtomicInteger;
 import net.pravian.tuxedo.persistence.PersistenceUtil;
 import net.pravian.tuxedo.snapshot.SimpleSnapshot;
 import net.pravian.tuxedo.snapshot.Snapshot;
@@ -26,43 +27,49 @@ import net.pravian.tuxedo.snapshot.Snapshot;
 public class SlidingWindowPool implements Pool {
 
     private final long[] values;
-    private int current;
+    private final AtomicInteger current = new AtomicInteger();
 
     public SlidingWindowPool(int size) {
         this.values = new long[size];
     }
 
     @Override
-    public synchronized int size() {
-        return Math.min(current, values.length);
+    public int size() {
+        synchronized (values) {
+            return Math.min(current.get(), values.length);
+        }
     }
 
     @Override
     public void push(long value) {
-        values[(current++ % values.length)] = value;
+        synchronized (values) {
+            values[(current.getAndIncrement() % values.length)] = value;
+        }
     }
 
     @Override
     public void clear() {
-        for (int i = 0; i < values.length; i++) {
-            values[i] = 0;
+        synchronized (values) {
+            for (int i = 0; i < values.length; i++) {
+                values[i] = 0;
+            }
+            current.set(0);
         }
-        current = 0;
     }
 
     @Override
     public Snapshot snapshot() {
-        return SimpleSnapshot.forDirectValues(values());
+        return SimpleSnapshot.forDirectValues(values()); // Threadsafe call
     }
 
     @Override
     public Iterator<Long> iterator() {
-        return snapshot().iterator();
+        return snapshot().iterator(); // Threadsafe call
     }
 
     @Override
     public void writeTo(OutputStream stream) throws IOException {
-        PersistenceUtil.writeValues(stream, values());
+        PersistenceUtil.writeValues(stream, values()); // Threadsafe call
     }
 
     @Override
@@ -70,14 +77,19 @@ public class SlidingWindowPool implements Pool {
         long[] readValues = PersistenceUtil.readValues(stream);
 
         clear();
-        for (long value : readValues) {
-            push(value);
+        synchronized (values) {
+            for (long value : readValues) {
+                push(value);
+            }
         }
     }
 
+    // Threadsafe
     private long[] values() {
         final long[] snapValues = new long[size()];
-        System.arraycopy(values, 0, snapValues, 0, snapValues.length);
+        synchronized (values) {
+            System.arraycopy(values, 0, snapValues, 0, snapValues.length);
+        }
         return snapValues;
     }
 

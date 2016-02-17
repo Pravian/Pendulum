@@ -13,12 +13,15 @@
  */
 package net.pravian.tuxedo.pool;
 
-
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.Iterator;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import net.pravian.tuxedo.Clock;
+import net.pravian.tuxedo.persistence.PersistenceUtil;
 import net.pravian.tuxedo.snapshot.SimpleSnapshot;
 import net.pravian.tuxedo.snapshot.Snapshot;
 
@@ -26,13 +29,14 @@ import net.pravian.tuxedo.snapshot.Snapshot;
  * https://github.com/dropwizard/metrics/blob/master/metrics-core/src/main/java/io/dropwizard/metrics/SlidingTimeWindowReservoir.java
  */
 public class SlidingTimeWindowPool implements Pool {
+
     // allow for this many duplicate ticks before overwriting measurements
     private static final int COLLISION_BUFFER = 256;
     // only trim on updating once every N
     private static final int TRIM_THRESHOLD = 256;
 
     private final Clock clock;
-    private final ConcurrentSkipListMap<Long, Long> measurements;
+    private final ConcurrentSkipListMap<Long, Long> values; // Tick -> Value
     private final long window;
     private final AtomicLong lastTick;
     private final AtomicLong count;
@@ -43,7 +47,7 @@ public class SlidingTimeWindowPool implements Pool {
 
     public SlidingTimeWindowPool(long window, TimeUnit windowUnit, Clock clock) {
         this.clock = clock;
-        this.measurements = new ConcurrentSkipListMap<>();
+        this.values = new ConcurrentSkipListMap<>();
         this.window = windowUnit.toNanos(window) * COLLISION_BUFFER;
         this.lastTick = new AtomicLong(clock.nanos() * COLLISION_BUFFER);
         this.count = new AtomicLong();
@@ -52,35 +56,35 @@ public class SlidingTimeWindowPool implements Pool {
     @Override
     public int size() {
         trim();
-        return measurements.size();
+        return values.size();
     }
-    
+
     @Override
     public void push(long value) {
         if (count.incrementAndGet() % TRIM_THRESHOLD == 0) {
             trim();
         }
-        measurements.put(getTick(), value);
+        values.put(getTick(), value);
     }
 
     @Override
     public void clear() {
-        measurements.clear();
+        values.clear();
     }
 
     @Override
     public Snapshot snapshot() {
         trim();
-        return SimpleSnapshot.forCollection(measurements.values());
+        return SimpleSnapshot.forCollection(values.values());
     }
 
     @Override
     public Iterator<Long> iterator() {
-        return measurements.values().iterator();
+        return values.values().iterator();
     }
 
     private long getTick() {
-        for (; ; ) {
+        for (;;) {
             final long oldTick = lastTick.get();
             final long tick = clock.nanos() * COLLISION_BUFFER;
             // ensure the tick is strictly incrementing even if there are duplicate ticks
@@ -92,6 +96,35 @@ public class SlidingTimeWindowPool implements Pool {
     }
 
     private void trim() {
-        measurements.headMap(getTick() - window).clear();
+        values.headMap(getTick() - window).clear();
     }
+
+    @Override
+    public void writeTo(OutputStream stream) throws IOException {
+
+        long[] longValues = new long[values.size() * 2];
+        int i = 0;
+        for (Long tick : values.keySet()) {
+            longValues[i++] = tick;
+            longValues[i++] = values.get(tick);
+        }
+
+        PersistenceUtil.writeValues(stream, longValues);
+    }
+
+    @Override
+    public void readFrom(InputStream stream) throws IOException {
+
+        long[] longValues = PersistenceUtil.readValues(stream);
+
+        if (longValues.length % 2 != 0) {
+            throw new IOException("Invalid stream format. Amount of values is not even! " + longValues.length + " values.");
+        }
+
+        clear();
+        for (int i = 0; i < longValues.length; i += 2) {
+            values.put(longValues[i], longValues[i + 1]);
+        }
+    }
+
 }

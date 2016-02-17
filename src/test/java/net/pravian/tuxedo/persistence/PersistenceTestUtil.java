@@ -21,6 +21,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import net.pravian.tuxedo.pool.Pool;
 import net.pravian.tuxedo.snapshot.Snapshot;
@@ -31,82 +33,95 @@ public class PersistenceTestUtil {
     private static final long[] values = {
         153030229,
         234110223,
+        72,
         945511402,
         420499952,
+        932,
         233123055,
         23,
-        123662
-    };
+        123662,
+        15,
+        3,};
 
-    private static final byte[] data;
+    private static final List<Long> valuesList;
 
     static {
-        ByteArrayOutputStream valuesBaos = new ByteArrayOutputStream();
-        DataOutputStream valuesDos = new DataOutputStream(valuesBaos);
+        List<Long> tempValuesList = new ArrayList<>(values.length);
 
-        try {
-
-            valuesDos.writeInt(values.length);
-            for (long value : values) {
-                valuesDos.writeLong(value);
-            }
-            valuesDos.flush();
-        } catch (Exception ex) {
-            assertWithMessage("Could not serialise data!").fail();
+        for (long value : values) {
+            tempValuesList.add(value);
         }
-        //
 
-        data = valuesBaos.toByteArray();
-        assertThat(data.length).isEqualTo(values.length * 8 + 4);
+        valuesList = Collections.unmodifiableList(tempValuesList);
+
+        assertWithMessage("Could not compile values list!").that(values).asList().containsExactlyElementsIn(valuesList).inOrder();
     }
 
     public static void testPool(Pool pool) throws IOException {
         assertThat(pool.size()).isEqualTo(0);
 
-        writeValues(pool);
+        // Push values
+        for (long value : values) {
+            pool.push(value);
+        }
 
+        // Assert contents
         assertThat(pool.size()).isEqualTo(values.length);
+        assertThat(pool.snapshot().getValues()).asList().containsExactlyElementsIn(valuesList);
 
-        readAndAssertValues(pool);
+        // Write values to a byte array
+        byte[] poolBytes = writeBytes(pool);
 
+        // Clear
+        pool.clear();
+        assertThat(pool.size()).isEqualTo(0);
+
+        // Read the values back again
+        readBytes(pool, poolBytes);
+
+        // Assert contents
+        assertThat(pool.size()).isEqualTo(values.length);
+        assertThat(pool.snapshot().getValues()).asList().containsExactlyElementsIn(valuesList);
     }
 
     public static void testTimer(Timer timer) throws IOException {
         assertThat(timer.size()).isEqualTo(0);
 
-        writeValues(timer);
-
-        assertThat(timer.size()).isEqualTo(values.length);
-
-        assertValues(timer.snapshot());
-        readAndAssertValues(timer);
-    }
-
-    private static void writeValues(Persistable pers) throws IOException {
-        pers.readFrom(new ByteArrayInputStream(data));
-    }
-
-    private static void assertValues(Snapshot shot) {
-        List<Long> valuesList = new ArrayList<>(values.length);
-
+        // Push values
         for (long value : values) {
-            valuesList.add(value);
+            timer.time(value);
         }
 
-        assertThat(shot.getValues())
-                .asList()
-                .containsExactlyElementsIn(valuesList);
+        // Assert contents
+        assertThat(timer.size()).isEqualTo(values.length);
+        assertThat(timer.snapshot().getValues()).asList().containsExactlyElementsIn(valuesList);
+
+        // Write values to a byte array
+        byte[] timerBytes = writeBytes(timer);
+
+        // Clear
+        timer.clear();
+        assertThat(timer.size()).isEqualTo(0);
+
+        // Read the values back again
+        readBytes(timer, timerBytes);
+
+        // Assert contents
+        assertThat(timer.size()).isEqualTo(values.length);
+        assertThat(timer.snapshot().getValues()).asList().containsExactlyElementsIn(valuesList);
     }
 
-    private static void readAndAssertValues(Persistable pers) throws IOException {
-        ByteArrayOutputStream resultBaos = new ByteArrayOutputStream();
-        DataOutputStream resultDos = new DataOutputStream(resultBaos);
- 
-        pers.writeTo(resultDos);
-        resultDos.flush();
+    private static byte[] writeBytes(Persistable pers) throws IOException {
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+            pers.writeTo(baos);
+            return baos.toByteArray();
+        }
+    }
 
-        assertThat(resultBaos.toByteArray()).isEqualTo(data);
-
+    private static void readBytes(Persistable pers, byte[] bytes) throws IOException {
+        try (ByteArrayInputStream bais = new ByteArrayInputStream(bytes)) {
+            pers.readFrom(bais);
+        }
     }
 
 }

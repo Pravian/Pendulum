@@ -15,16 +15,16 @@
  */
 package net.pravian.tuxedo.pool;
 
-public interface PoolFactory {
+import java.io.IOException;
+import java.util.concurrent.TimeUnit;
+import net.pravian.tuxedo.persistence.PersistenceTestUtil;
+import org.junit.Test;
 
-    public static PoolFactory DEFAULT = new PoolFactory() {
+public class SlidingTimeWindowPoolTest {
 
-        @Override
-        public Pool createPool() {
-            return new StaticPool();
-        }
-    };
-
-    public Pool createPool();
+    @Test
+    public void testPersistence() throws IOException {
+        PersistenceTestUtil.testPool(new SlidingTimeWindowPool(5, TimeUnit.MINUTES));
+    }
 
 }

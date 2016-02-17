@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import net.pravian.tuxedo.persistence.PersistenceUtil;
@@ -27,7 +28,7 @@ import net.pravian.tuxedo.snapshot.Snapshot;
 
 public class StaticPool implements Pool {
 
-    private final List<Long> values = new ArrayList<>();
+    private final List<Long> values = Collections.synchronizedList(new ArrayList<Long>());
 
     @Override
     public void push(long val) {
@@ -46,17 +47,23 @@ public class StaticPool implements Pool {
 
     @Override
     public Snapshot snapshot() {
-        return SimpleSnapshot.forCollection(values);
+        synchronized (values) {
+            return SimpleSnapshot.forCollection(values);
+        }
     }
 
     @Override
     public Iterator<Long> iterator() {
-        return values.iterator();
+        synchronized (values) {
+            return values.iterator();
+        }
     }
 
     @Override
     public void writeTo(OutputStream stream) throws IOException {
-        PersistenceUtil.writeValues(stream, values.toArray(new Long[0]));
+        synchronized (values) {
+            PersistenceUtil.writeValues(stream, values.toArray(new Long[0]));
+        }
     }
 
     @Override

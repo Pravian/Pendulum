@@ -35,7 +35,7 @@ public class Timer implements Snapshottable, Persistable, Iterable<Long> {
     private final String name;
     @Getter
     private final Clock clock;
-    private final Pool pool;
+    private final Pool pool; // Pool handles synchronisation
 
     public Timer(Tuxedo pendulum, String name, Pool pool) {
         this(name, pendulum.getClock(), pool);
@@ -62,7 +62,7 @@ public class Timer implements Snapshottable, Persistable, Iterable<Long> {
     public Split start() {
         return Split.start(this);
     }
-        
+
     public long time(Split time) {
         return time(time.getTimeNanos());
     }
@@ -77,7 +77,7 @@ public class Timer implements Snapshottable, Persistable, Iterable<Long> {
             throw throwable;
         }
     }
-    
+
     public <T> T time(Callable<T> callable) throws Exception {
         long start = clock.nanos();
         try {
@@ -91,7 +91,7 @@ public class Timer implements Snapshottable, Persistable, Iterable<Long> {
         pool.push(time);
         return time;
     }
-    
+
     public int size() {
         return pool.size();
     }

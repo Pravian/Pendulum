@@ -121,4 +121,23 @@ public class SimpleSnapshot implements Snapshot {
         return new SimpleSnapshot(values);
     }
 
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 31 * hash + Arrays.hashCode(this.values);
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final SimpleSnapshot other = (SimpleSnapshot) obj;
+        return Arrays.equals(this.values, other.values);
+    }
+
 }
