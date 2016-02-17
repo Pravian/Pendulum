@@ -32,21 +32,21 @@ public class StopWatch implements Timable {
         reset();
     }
 
-    public final boolean isRunning() {
+    public synchronized final boolean isRunning() {
         return running;
     }
 
-    public final Clock getClock() {
+    public synchronized final Clock getClock() {
         return clock;
     }
 
-    public final void reset() {
+    public synchronized final void reset() {
         running = false;
         start = 0;
         stop = 0;
     }
 
-    public void start() {
+    public synchronized void start() {
         if (running) {
             return;
         }
@@ -54,16 +54,20 @@ public class StopWatch implements Timable {
         start = clock.nanos();
     }
 
-    public void stop() {
+    public synchronized long stop() {
         if (!running) {
-            return;
+            return stop - start;
         }
         running = false;
-        stop = clock.nanos();
+        return (stop = clock.nanos()) - start;
+    }
+
+    public synchronized long current() {
+        return start - clock.nanos();
     }
 
     @Override
-    public long getTimeNanos() {
+    public synchronized long getTimeNanos() {
         if (isRunning()) {
             throw new IllegalStateException("StopWatch is still running!");
         }
